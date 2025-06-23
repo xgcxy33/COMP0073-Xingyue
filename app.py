@@ -32,24 +32,27 @@ def convert_to_base64(pil_image):
     buffered = BytesIO()
     pil_image.save(buffered, format=pil_image.format)  # You can change the format if needed
     img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
-    print(img_str)
     return img_str
 
 
-def granite_response(user_input):
+def granite_response(image_b64):
 
     model = OllamaLLM(model="granite3.2-vision")
-    image = download_image_url(user_input)
-    image_b64 = convert_to_base64(image)
     llm_with_image_context = model.bind(images=[image_b64])
-    granite_output = llm_with_image_context.invoke("Describe the image")
-    print(granite_output)
-    return granite_output
+    for t in llm_with_image_context.stream("Image you are a professional doctor. Describe the content in the image, your input will be passed to another AI that specialises in medicial field to further help the doctor."):
+        yield t
+    yield "\n"
+    yield "---END OF IMAGE PARSING---\n"
+    yield "\n"
 
 # A simple chatbot function (you can modify it to be more complex)
-def chatbot_response(user_input: str):
-    doctor_input, image_url = user_input.split('|', maxsplit=1)
-    granite_output = granite_response(image_url)
+def chatbot_response(user_input: str, image_b64: str):
+    doctor_input = user_input
+    granite_output = ""
+    for t in granite_response(image_b64):
+        yield t
+        granite_output += t
+    print(granite_output)
     prompt = PromptTemplate(
         input_variables=["doctor_input", "evidence_text"],
         template=(
@@ -98,26 +101,10 @@ def index():
 
 @app.route('/ask', methods=['POST'])
 def ask_granite():
-    user_input = request.form.get('message')
-    image_file = request.files.get('image')
-    if image_file:
-        # 直接用上传的图片
-        image = Image.open(image_file.stream)
-        image_b64 = convert_to_base64(image)
-        granite_output = granite_response_with_b64(image_b64)
-    else:
-        # 兼容原有逻辑：输入为图片链接
-        granite_output = granite_response(user_input.split('|', 1)[1])
-    # 下面的逻辑保持不变
-    return Response(chatbot_response(user_input), content_type='text/plain;charset=utf-8')
-
-# 新增一个函数，直接用base64图片
-def granite_response_with_b64(image_b64):
-    model = OllamaLLM(model="granite3.2-vision")
-    llm_with_image_context = model.bind(images=[image_b64])
-    granite_output = llm_with_image_context.invoke("Describe the image")
-    print(granite_output)
-    return granite_output
+    data = request.get_json()
+    user_input = data.get('message')
+    image_b64 = data.get('image')
+    return Response(chatbot_response(user_input, image_b64), content_type='text/plain;charset=utf-8')
 
 if __name__ == '__main__':
-    app.run(debug=True,port=8088)
+    app.run(debug=True,port=8089)

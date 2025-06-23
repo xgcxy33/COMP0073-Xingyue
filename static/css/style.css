@@ -10,7 +10,7 @@ body {
 }
 
 .chatbox-container {
-    width: 600px;
+    width: 1000px;
     height: 600px;
     background: #fff;
     border-radius: 8px;
@@ -56,7 +56,7 @@ body {
     padding: 8px 12px;
     background: #fff;
     width: 100%;
-    max-width: 600px;
+    max-width: 800px;
     margin: 0 auto;
     box-sizing: border-box;
 }
