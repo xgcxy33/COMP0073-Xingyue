@@ -50,27 +50,59 @@ body {
 
 .input-area {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    border-radius: 20px;
+    border: 1.5px solid #e0e0e0;
+    padding: 8px 12px;
+    background: #fff;
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    box-sizing: border-box;
 }
 
-.input-area input {
-    width: 80%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
-
-.input-area button {
-    width: 15%;
-    padding: 10px;
-    border: 1px solid #4CAF50;
-    background-color: #4CAF50;
-    color: white;
-    border-radius: 4px;
+.plus-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    color: #555;
+    background: none;
+    border: none;
     cursor: pointer;
+    margin-right: 12px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    transition: background 0.2s;
+    user-select: none;
 }
 
-.input-area button:hover {
-    background-color: #45a049;
+.plus-btn:hover {
+    background: #f0f0f0;
+}
+
+#user-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 18px;
+    padding: 8px 12px;
+    background: transparent;
+}
+
+button {
+    padding: 8px 20px;
+    font-size: 16px;
+    border-radius: 16px;
+    border: none;
+    background: #28a745;
+    color: white;
+    cursor: pointer;
+    margin-left: 12px;
+    transition: background 0.2s;
+}
+
+button:hover {
+    background: #218838;
 }

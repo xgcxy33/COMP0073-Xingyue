@@ -98,9 +98,26 @@ def index():
 
 @app.route('/ask', methods=['POST'])
 def ask_granite():
-  user_input = request.json.get('message')
-  return Response(chatbot_response(user_input), content_type='text/plain;charset=utf-8')
+    user_input = request.form.get('message')
+    image_file = request.files.get('image')
+    if image_file:
+        # 直接用上传的图片
+        image = Image.open(image_file.stream)
+        image_b64 = convert_to_base64(image)
+        granite_output = granite_response_with_b64(image_b64)
+    else:
+        # 兼容原有逻辑：输入为图片链接
+        granite_output = granite_response(user_input.split('|', 1)[1])
+    # 下面的逻辑保持不变
+    return Response(chatbot_response(user_input), content_type='text/plain;charset=utf-8')
 
+# 新增一个函数，直接用base64图片
+def granite_response_with_b64(image_b64):
+    model = OllamaLLM(model="granite3.2-vision")
+    llm_with_image_context = model.bind(images=[image_b64])
+    granite_output = llm_with_image_context.invoke("Describe the image")
+    print(granite_output)
+    return granite_output
 
 if __name__ == '__main__':
-    app.run(debug=True,port=8089)
+    app.run(debug=True,port=8088)
