@@ -1,0 +1,212 @@
+import gradio as gr
+import torch
+from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer, TextIteratorStreamer, BitsAndBytesConfig
+from janus.models import MultiModalityCausalLM, VLChatProcessor
+from PIL import Image
+from threading import Thread
+import json
+import requests
+
+import numpy as np
+import os
+import time
+# import spaces  # Import spaces for ZeroGPU compatibility
+
+probe_prompt_template = """You are a clinical expert in ultrasound-guided regional anesthesia, writing concise and standardized clinical instructions for probe placement and image optimization.
+
+You will receive a segmented ultrasound image description. Your task is to provide clinically relevant, concise, step-by-step advice for ultrasound-guided interscalene block, including the following components:
+- Recommended transducer type and placement.
+- Key anatomical landmarks to identify.
+- Optimal probe adjustments (angle, depth, gain).
+- Recommended needle path and safety tips.
+
+Format your output as a numbered list of steps.
+
+Your advice should generalize to the described region and anatomical context, avoiding copying exact terms from the description unnecessarily. Do not invent anatomical structures not present in the description.
+
+Example:
+Input: "This ultrasound image shows the brachial plexus, which is a network of nerves in the upper arm. The image is divided into two sections: medial and lateral.
+
+- The medial side of the image shows the carotid artery, which is highlighted by an orange dashed circle.
+- The lateral side of the image shows the middle scalene muscle, which is highlighted by a dashed circle.
+
+The image also shows the following structures:
+- The pectoralis muscle is located in the upper part of the image.
+- The axillary nerve is visible, which is a nerve that originates from the brachial plexus.
+- The axillary artery is also visible, which is a blood vessel that runs along the side of the arm."
+
+Example Output:
+1. Place the probe at the lateral neck, aligning with the indicated direction, and adjust angle slightly medially.
+2. Identify the carotid on medial side and middle scalene on lateral side as landmarks.
+3. Fine-tune depth and gain to clearly visualize the brachial plexus between scalene muscles.
+4. Advance the needle in-plane from lateral to medial towards the nerve bundle, ensuring continuous visualization of the needle tip.
+
+Now evaluate the following image:
+Input: "<input>"
+"""
+
+hf_cache_dir = '/project/hf_home/'
+
+# Load model and processor
+                                             
+deepseek_model_path = "deepseek-ai/Janus-Pro-7B"
+vl_chat_processor: VLChatProcessor = VLChatProcessor.from_pretrained(deepseek_model_path)
+tokenizer = vl_chat_processor.tokenizer
+
+vl_gpt: MultiModalityCausalLM = AutoModelForCausalLM.from_pretrained(
+    deepseek_model_path, trust_remote_code=True, cache_dir=hf_cache_dir
+)
+vl_gpt = vl_gpt.to(torch.float32).eval().cpu()
+
+cuda_device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+def call_final_model(user_prompt, temperature, top_p, max_new_tokens):
+    TGI_URL = "http://127.0.0.1:8090/generate_stream"
+    MODEL_ID = "aaditya/OpenBioLLM-Llama3-70B"
+
+    messages = [
+        {
+            "role": "user",
+            "content": user_prompt
+        },
+    ]
+
+    # 🔷 BUILD PROMPT
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
+
+    prompt = tokenizer.apply_chat_template(
+        messages,
+        tokenize=False,
+        add_generation_prompt=True
+    )
+
+
+    # 🔷 BUILD TGI REQUEST
+    payload = {
+        "inputs": prompt,
+        "parameters": {
+            "max_new_tokens": max_new_tokens,
+            "do_sample": False if temperature == 0.0 else True,
+            "temperature": temperature,
+            "top_p": top_p,
+        }
+    }
+
+    headers = {
+        "Content-Type": "application/json"
+    }
+
+    # 🔷 CALL TGI
+    with requests.post(TGI_URL, json=payload, headers=headers, stream=True) as resp:
+        resp.raise_for_status()  # check for HTTP error
+
+        # iterate over the response line by line
+        for line in resp.iter_lines(decode_unicode=True):
+            if not line:  # skip empty keep-alives
+                continue
+            try:
+                if line.startswith("data:"):
+                    line = line[len("data:"):].strip()
+                data = json.loads(line)
+                # print(data)  # handle the JSON object
+                if not data['token']['special']:
+                    new_token = data['token']['text']
+                    yield new_token
+                
+            except json.JSONDecodeError as e:
+                print(f"Failed to parse line: {line!r} error: {e}")
+
+
+
+@torch.inference_mode()
+def multimodal_understanding(image, question, seed, top_p, temperature):
+    # Clear CUDA cache before generating
+    torch.cuda.empty_cache()
+    
+    # set seed
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+    torch.cuda.manual_seed(seed)
+    
+    conversation = [
+        {
+            "role": "<|User|>",
+            "content": f"<image_placeholder>\n{question}",
+            "images": [image],
+        },
+        {"role": "<|Assistant|>", "content": ""},
+    ]
+    
+    pil_images = [Image.fromarray(image)]
+    prepare_inputs = vl_chat_processor(
+        conversations=conversation, images=pil_images, force_batchify=True
+    ).to(cuda_device, dtype=torch.float32)
+    
+    
+    inputs_embeds = vl_gpt.prepare_inputs_embeds(**prepare_inputs)
+
+    
+    outputs = vl_gpt.language_model.generate(
+        inputs_embeds=inputs_embeds,
+        attention_mask=prepare_inputs.attention_mask,
+        pad_token_id=tokenizer.eos_token_id,
+        bos_token_id=tokenizer.bos_token_id,
+        eos_token_id=tokenizer.eos_token_id,
+        max_new_tokens=512,
+        do_sample=False if temperature == 0 else True,
+        use_cache=True,
+        temperature=temperature,
+        top_p=top_p,
+    )
+    
+    answer = tokenizer.decode(outputs[0].cpu().tolist(), skip_special_tokens=True)
+    return answer
+
+
+def get_final_output(image_understanding, prompt_template, temperature, top_p, max_new_tokens):
+    final_output = ''
+    prompt = prompt_template.replace("<input>", image_understanding)
+    for token in call_final_model(prompt, temperature, top_p, max_new_tokens):
+        final_output += token
+        yield final_output
+
+
+# Gradio interface
+with gr.Blocks() as demo:
+    gr.Markdown(value="# Multimodal Understanding")
+    with gr.Row():
+        image_input = gr.Image()
+        with gr.Column():
+            question_input = gr.Textbox(label="Question", value="This is the ultrasound image of brachial plexus, please describe the image.")
+            und_seed_input = gr.Number(label="Seed", precision=0, value=42)
+            top_p = gr.Slider(minimum=0, maximum=1, value=0.95, step=0.05, label="top_p")
+            temperature = gr.Slider(minimum=0, maximum=1, value=0.1, step=0.05, label="temperature")
+        with gr.Column():
+            final_model_prompt_template = gr.Textbox(label="Probe Prompt", value=probe_prompt_template)
+            final_model_max_new_tokens = gr.Slider(minimum=128, maximum=1024, value=256, step=128, label="med model max new tokens")
+            final_model_top_p = gr.Slider(minimum=0, maximum=1, value=0.9, step=0.05, label="med model top_p")
+            final_model_temperature = gr.Slider(minimum=0, maximum=1, value=0.1, step=0.05, label="med model temperature")
+        
+    understanding_button = gr.Button("Chat")
+    understanding_output = gr.Textbox(label="Response")
+    final_output = gr.Textbox(label="Final Response")
+
+    examples_inpainting = gr.Examples(
+        label="Multimodal Understanding examples",
+        examples=[
+        ],
+        inputs=[question_input, image_input],
+    )
+    
+    understanding_button.click(
+        multimodal_understanding,
+        inputs=[image_input, question_input, und_seed_input, top_p, temperature],
+        outputs=understanding_output
+    ).then(
+        get_final_output,
+        inputs=[understanding_output, final_model_prompt_template, final_model_temperature, final_model_top_p, final_model_max_new_tokens],
+        outputs=final_output
+    )
+
+demo.queue(concurrency_count=1).launch(server_port=8089, share=False)
+# demo.queue(concurrency_count=1, max_size=10).launch(server_name="0.0.0.0", server_port=37906, root_path="/path")
