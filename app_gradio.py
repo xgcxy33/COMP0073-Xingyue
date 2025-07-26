@@ -4,6 +4,7 @@ from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer, TextIt
 from janus.models import MultiModalityCausalLM, VLChatProcessor
 from PIL import Image
 from threading import Thread
+from deepseek_janus import init_deepseek_janus, generate_multimodal_understanding
 import json
 import requests
 
@@ -45,20 +46,9 @@ Now evaluate the following image:
 Input: "<input>"
 """
 
-hf_cache_dir = '/project/hf_home/'
 
 # Load model and processor
-                                             
-deepseek_model_path = "deepseek-ai/Janus-Pro-7B"
-vl_chat_processor: VLChatProcessor = VLChatProcessor.from_pretrained(deepseek_model_path)
-tokenizer = vl_chat_processor.tokenizer
-
-vl_gpt: MultiModalityCausalLM = AutoModelForCausalLM.from_pretrained(
-    deepseek_model_path, trust_remote_code=True, cache_dir=hf_cache_dir
-)
-vl_gpt = vl_gpt.to(torch.float32).eval().cpu()
-
-cuda_device = 'cuda' if torch.cuda.is_available() else 'cpu'
+janus_vl_chat_processor, janus_vl_gpt, janus_tokenizer = init_deepseek_janus()
 
 def call_final_model(user_prompt, temperature, top_p, max_new_tokens):
     TGI_URL = "http://127.0.0.1:8090/generate_stream"
@@ -120,47 +110,8 @@ def call_final_model(user_prompt, temperature, top_p, max_new_tokens):
 
 @torch.inference_mode()
 def multimodal_understanding(image, question, seed, top_p, temperature):
-    # Clear CUDA cache before generating
-    torch.cuda.empty_cache()
-    
-    # set seed
-    torch.manual_seed(seed)
-    np.random.seed(seed)
-    torch.cuda.manual_seed(seed)
-    
-    conversation = [
-        {
-            "role": "<|User|>",
-            "content": f"<image_placeholder>\n{question}",
-            "images": [image],
-        },
-        {"role": "<|Assistant|>", "content": ""},
-    ]
-    
-    pil_images = [Image.fromarray(image)]
-    prepare_inputs = vl_chat_processor(
-        conversations=conversation, images=pil_images, force_batchify=True
-    ).to(cuda_device, dtype=torch.float32)
-    
-    
-    inputs_embeds = vl_gpt.prepare_inputs_embeds(**prepare_inputs)
-
-    
-    outputs = vl_gpt.language_model.generate(
-        inputs_embeds=inputs_embeds,
-        attention_mask=prepare_inputs.attention_mask,
-        pad_token_id=tokenizer.eos_token_id,
-        bos_token_id=tokenizer.bos_token_id,
-        eos_token_id=tokenizer.eos_token_id,
-        max_new_tokens=512,
-        do_sample=False if temperature == 0 else True,
-        use_cache=True,
-        temperature=temperature,
-        top_p=top_p,
-    )
-    
-    answer = tokenizer.decode(outputs[0].cpu().tolist(), skip_special_tokens=True)
-    return answer
+    return generate_multimodal_understanding(image, question, seed, top_p, temperature, 
+                                             janus_vl_chat_processor, janus_vl_gpt, janus_tokenizer)
 
 
 def get_final_output(image_understanding, prompt_template, temperature, top_p, max_new_tokens):
