@@ -1,5 +1,6 @@
 from transformers import AutoModelForCausalLM
 from janus.models import MultiModalityCausalLM, VLChatProcessor
+from janus.utils.io import load_pil_images
 from PIL import Image
 
 import torch
@@ -34,7 +35,8 @@ def generate_multimodal_understanding(image, question, seed, top_p, temperature,
         {"role": "<|Assistant|>", "content": ""},
     ]
     
-    pil_images = [Image.fromarray(image)]
+    # pil_images = [Image.fromarray(image)]
+    pil_images = load_pil_images(conversation)
     prepare_inputs = vl_chat_processor(
         conversations=conversation, images=pil_images, force_batchify=True
     ).to('cpu', dtype=torch.float32)
