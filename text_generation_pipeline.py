@@ -85,7 +85,7 @@ if __name__ == "__main__":
     os.makedirs(os.path.dirname(output_file_path), exist_ok=True)
 
     with open(output_file_path, "w") as output_file:
-        json.dump(res, output_file, ensure_ascii=False)
+        json.dump(res, output_file, ensure_ascii=False, indent=4)
         
         
         
