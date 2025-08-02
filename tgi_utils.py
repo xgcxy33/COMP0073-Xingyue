@@ -51,7 +51,6 @@ def get_tgi_stream(user_prompt, temperature, top_p, model_id,
                 if not data['token']['special']:
                     new_token = data['token']['text']
                     yield new_token
-                    full_response += new_token
                 
             except json.JSONDecodeError as e:
                 print(f"Failed to parse line: {line!r} error: {e}")
