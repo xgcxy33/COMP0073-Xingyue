@@ -20,11 +20,14 @@ def generate_combined_model_response(image, args, vl_chat_processor, vl_gpt, tok
                                                       tokenizer=tokenizer)
     print(f"Generated image_caption: {image_caption}")
     clinic_model_prompt = getattr(prompts, args.clinic_model_prompt_key)
-    clinic_model_output = get_tgi_stream(user_prompt=clinic_model_prompt.replace("<input>", image_caption), 
+    clinic_model_output_generator = get_tgi_stream(user_prompt=clinic_model_prompt.replace("<input>", image_caption), 
                    temperature=args.clinic_model_temperature, 
                    top_p=args.clinic_model_top_p, 
                    model_id=args.clinic_model_id, 
                    tgi_port=args.clinic_model_tgi_port)
+    clinic_model_output = ""
+    for token in clinic_model_output_generator:
+        clinic_model_output += token
     print(f"Clinic model output: {clinic_model_output}")
     return clinic_model_output
     

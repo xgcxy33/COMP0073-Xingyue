@@ -36,7 +36,6 @@ def get_tgi_stream(user_prompt, temperature, top_p, model_id,
     }
 
     # 🔷 CALL TGI
-    full_response = ""
     with requests.post(tgi_url, json=payload, headers=headers, stream=True) as resp:
         resp.raise_for_status()  # check for HTTP error
 
@@ -56,4 +55,3 @@ def get_tgi_stream(user_prompt, temperature, top_p, model_id,
                 
             except json.JSONDecodeError as e:
                 print(f"Failed to parse line: {line!r} error: {e}")
-    return full_response
