@@ -3,9 +3,8 @@ import requests
 import json
 
 
-def get_med42_tgi_stream(user_prompt, temperature, top_p, max_new_tokens, 
-                     model_id="m42-health/Llama3-Med42-70B",
-                     tgi_port=8090):
+def get_tgi_stream(user_prompt, temperature, top_p, model_id, 
+                   max_new_tokens=256, tgi_port=8090):
     tgi_url = f"http://127.0.0.1:{tgi_port}/generate_stream"
 
 
@@ -18,7 +17,7 @@ def get_med42_tgi_stream(user_prompt, temperature, top_p, max_new_tokens,
 
     # 🔷 BUILD PROMPT
     tokenizer = AutoTokenizer.from_pretrained(model_id)
-    prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=False)
+    prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
 
 
     # 🔷 BUILD TGI REQUEST
@@ -37,6 +36,7 @@ def get_med42_tgi_stream(user_prompt, temperature, top_p, max_new_tokens,
     }
 
     # 🔷 CALL TGI
+    full_response = ""
     with requests.post(tgi_url, json=payload, headers=headers, stream=True) as resp:
         resp.raise_for_status()  # check for HTTP error
 
@@ -52,6 +52,8 @@ def get_med42_tgi_stream(user_prompt, temperature, top_p, max_new_tokens,
                 if not data['token']['special']:
                     new_token = data['token']['text']
                     yield new_token
+                    full_response += new_token
                 
             except json.JSONDecodeError as e:
                 print(f"Failed to parse line: {line!r} error: {e}")
+    return full_response
