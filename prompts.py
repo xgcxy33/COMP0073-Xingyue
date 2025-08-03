@@ -1,6 +1,7 @@
 default_image_prompt = "This is the ultrasound image of brachial plexus, please describe the image professionally."
 
 interscalene_image_prompt = "Describe this ultrasound image accurately and professionally, focusing on the key anatomical structures of the Interscalene brachial plexus region."
+Supraclavicular_image_prompt = "Describe this ultrasound image accurately and professionally, focusing on the key anatomical structures of the Supraclavicular brachial plexus region."
 
 default_clinic_prompt = """You are a clinical expert in ultrasound-guided regional anesthesia.  
 Write clear, concise, and standardized clinical advice for **brachial plexus block**, based on a segmented ultrasound image description.
