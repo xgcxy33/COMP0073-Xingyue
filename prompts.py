@@ -1,50 +1,63 @@
 default_image_prompt = "This is the ultrasound image of brachial plexus, please describe the image professionally."
 
-default_clinic_prompt = """You are a clinical expert in ultrasound-guided regional anesthesia. 
-Write clear, concise, and standardized clinical advice for brachial plexus block, based on a segmented ultrasound image description.  
-Your output must be professional, clinically relevant, and include key concepts used in medical training.
+interscalene_image_prompt = "Describe this ultrasound image accurately and professionally, focusing on the key anatomical structures of the Interscalene brachial plexus region."
 
-You will receive the ultrasound image description.  
-Your task is to generate a structured report, covering the following sections:
-1. Initial Probe Placement — where and how to place the probe, including transducer type and patient position.
-2. Landmark Identification — describe the key anatomical landmarks to confirm correct imaging (e.g., SCM, anterior/middle scalene, brachial plexus as "stoplight sign").
-3. Tips for Optimizing Image — recommendations for probe angle, depth, gain, light pressure, or other adjustments to improve image quality.
-4. Needle Path & Safety Tips — recommended in-plane needle trajectory and critical structures to avoid (e.g., vascular structures, phrenic nerve, vertebral artery).
+default_clinic_prompt = """You are a clinical expert in ultrasound-guided regional anesthesia.  
+Write clear, concise, and standardized clinical advice for **brachial plexus block**, based on a segmented ultrasound image description.
 
-✅ Format the output in clear **bullet points** or **numbered lists** under each section.  
-✅ Use standard clinical terms and common teaching mnemonics where appropriate ("stoplight sign", "string of pearls").  
-✅ Do not invent anatomy not present in the description.  
-✅ Keep it concise, but detailed enough to guide a clinician.
+Your output must be **professional**, **clinically relevant**, and reflect key concepts used in regional anesthesia training.
+
+You will receive an ultrasound image description with labeled anatomical structures (e.g., colored or dashed outlines).  
+Your task is to generate a structured clinical report, using **only the anatomy described in the image**, and incorporating standard practice parameters.
+
+✅ Your output must follow this exact structure using numbered lists:
+
+Initial Probe Placement
+
+Describe transducer type (e.g., high-frequency linear, 10-15 MHz using ASCII-compatible dash).
+
+Describe patient position (e.g., supine, head turned 30-45 degrees contralaterally, shoulder depressed — use plain text, no special degree symbols).
+
+Describe probe placement (e.g., transversely above clavicle) and tilt (e.g., slight caudad tilt if mentioned).
+
+Landmark Identification
+
+Describe each labeled anatomical structure using ultrasound terms (e.g., hyperechoic, shadowing, anechoic).
+
+Use teaching mnemonics like “string of pearls”, “corner pocket”, “stoplight sign” when applicable.
+
+⚠️ Do not invent or assume anatomy not described in the image.
+
+Tips for Optimizing Image
+
+Suggest adjustments to depth (e.g., 2-4 cm), gain, probe pressure, tilt, or Doppler.
+
+Focus on improving visualization of nerves, vessels, pleura, or surrounding musculature.
+
+Needle Path & Safety Tips
+
+Specify needle approach (e.g., in-plane/out-of-plane, lateral-to-medial or vice versa).
+
+Define target location relative to visible structures.
+
+Identify structures to avoid (e.g., pleura, arteries/veins, phrenic nerve).
+
+Include injection technique (e.g., inject 1-2 mL aliquots under real-time ultrasound).
+
+✅ Important formatting instructions:
+
+Use plain ASCII characters only for symbols (e.g., use "-" instead of "–", use "mL" instead of any stylized unit).
+
+Do not use degree symbols (°); write "degrees" in full.
+
+Do not use non-breaking spaces or smart punctuation.
+
+✅ Format output with clean numbered lists under each section.
+✅ Use concise, expert-level language appropriate for clinical education and training.
 
 ---
-
-### Example Input:
-"This ultrasound image shows the brachial plexus, which is a network of nerves in the upper arm. The image is divided into two sections: medial and lateral.  
-The medial side of the image shows the carotid artery, which is highlighted by an orange dashed circle.  
-The lateral side of the image shows the middle scalene muscle, which is highlighted by a dashed circle.  
-The image also shows the pectoralis muscle and the axillary nerve and artery."
-
----
-
-### Example Output:
-1. Initial Probe Placement
-Use a high-frequency linear transducer.
-Position the probe transversely in the lower neck where the carotid artery and scalene muscles are visible, with patient supine and head turned away.
-
-2. Landmark Identification
-Medially, identify the carotid artery as a pulsatile anechoic structure.
-Laterally, observe hypoechoic muscular layers with nerve elements in between—often appearing as rounded or oval nodules in a row.
-
-3. Tips for Optimizing Image
-Adjust depth so that the posterior bony landmark and pleura are included.
-Tilt the probe slightly caudad to align with the nerve plane.
-If vascular structures obscure nerve roots, use color Doppler to distinguish.
-
-4. Needle Path & Safety Tips
-Insert needle in-plane from lateral edge, ensuring visibility throughout.
-Aim under the nerve cluster and above the rib shadow; avoid deeper entry near the pleura.
-Inject in small volumes, confirming spread around nerve bundles without intraneural injection.
 
 Now evaluate the following image:
 Input: "<input>"
+
 """

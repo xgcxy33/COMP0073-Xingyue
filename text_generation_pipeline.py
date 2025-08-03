@@ -43,11 +43,11 @@ if __name__ == "__main__":
     # Add arguments
     parser.add_argument("input_file_path", help="Input file path")
     parser.add_argument("--image_model_top_p", default=0.95)
-    parser.add_argument("--image_model_temperature", default=0.1)
+    parser.add_argument("--image_model_temperature", default=0.5)
     parser.add_argument("--image_model_seed", default=42)
     parser.add_argument("--image_model_prompt_key", default="default_image_prompt")
     parser.add_argument("--clinic_model_top_p", default=0.9)
-    parser.add_argument("--clinic_model_temperature", default=0.1)
+    parser.add_argument("--clinic_model_temperature", default=0.9)
     parser.add_argument("--clinic_model_prompt_key", default="default_clinic_prompt")
     parser.add_argument("--clinic_model_id", default="aaditya/Llama3-OpenBioLLM-70B")
     parser.add_argument("--clinic_model_tgi_port", default=8090)

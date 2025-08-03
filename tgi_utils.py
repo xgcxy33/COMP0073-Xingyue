@@ -4,7 +4,7 @@ import json
 
 
 def get_tgi_stream(user_prompt, temperature, top_p, model_id, 
-                   max_new_tokens=256, tgi_port=8090):
+                   max_new_tokens=1024, tgi_port=8090):
     tgi_url = f"http://127.0.0.1:{tgi_port}/generate_stream"
 
 
