@@ -47,10 +47,11 @@ class BioTextSimilarity:
 # ==================== 方法 3: Sentence-BERT + Cosine ====================
 def compute_sentencebert_similarity(text_a, text_b):
     print("=== Sentence-BERT Cosine Similarity ===")
-    model = SentenceTransformer('all-MiniLM-L6-v2')  # or use 'all-mpnet-base-v2' for better accuracy
-    embedding_a = model.encode([text_a])
-    embedding_b = model.encode([text_b])
-    similarity = cosine_similarity(embedding_a, embedding_b)
+    device = 'cpu'  # 强制使用 CPU
+    model = SentenceTransformer('all-MiniLM-L6-v2', device=device)
+    embedding_a = model.encode([text_a], convert_to_tensor=True, device=device)
+    embedding_b = model.encode([text_b], convert_to_tensor=True, device=device)
+    similarity = cosine_similarity(embedding_a.cpu().numpy(), embedding_b.cpu().numpy())
     print(f"Cosine similarity: {similarity[0][0]:.4f}")
 
 # ==================== 方法 4: ROUGE-1 ====================
