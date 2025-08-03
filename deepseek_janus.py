@@ -35,8 +35,10 @@ def generate_multimodal_understanding(image, question, seed, top_p, temperature,
         {"role": "<|Assistant|>", "content": ""},
     ]
     
-    # pil_images = [Image.fromarray(image)]
-    pil_images = load_pil_images(conversation)
+    if isinstance(image, np.ndarray):
+        pil_images = [Image.fromarray(image)]
+    else:
+        pil_images = load_pil_images(conversation)
     prepare_inputs = vl_chat_processor(
         conversations=conversation, images=pil_images, force_batchify=True
     ).to('cpu', dtype=torch.float32)
