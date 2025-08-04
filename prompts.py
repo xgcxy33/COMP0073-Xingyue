@@ -1,7 +1,7 @@
 default_image_prompt = "This is the ultrasound image of brachial plexus, please describe the image professionally."
 
 interscalene_image_prompt = "Describe this ultrasound image accurately and professionally, focusing on the key anatomical structures of the Interscalene brachial plexus region."
-Supraclavicular_image_prompt = "Describe this ultrasound image accurately and professionally, focusing on the key anatomical structures of the Supraclavicular brachial plexus region."
+Supraclavicular_image_prompt = "Describe this ultrasound image accurately and professionally, focusing on the key anatomical structures of the Supraclavicular brachial plexus region. SA = Subclavian Artery (If not visible in the image, do not describe it.)"
 infraclavicular_image_prompt = "Describe this ultrasound image accurately and professionally, focusing on the key anatomical structures of the infraclavicular brachial plexus region."
 axillary_image_prompt = "Describe this ultrasound image accurately and professionally, focusing on the key anatomical structures of the axillary brachial plexus region."
 
