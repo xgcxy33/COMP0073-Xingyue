@@ -10,7 +10,11 @@ Supraclavicular_image_prompt = """Describe this ultrasound image accurately and 
 
 SA = Subclavian Artery (If not visible in the image, do not describe it.)"""
 
-infraclavicular_image_prompt = "Describe this ultrasound image accurately and professionally, focusing on the key anatomical structures of the infraclavicular brachial plexus region. "
+infraclavicular_image_prompt = """Describe this ultrasound image accurately and professionally, focusing on the key anatomical structures of the axillary brachial plexus region.
+
+AA = Axillary Artery(If not visible in the image, do not describe it.)
+AV = Axillary Vein(If not visible in the image, do not describe it.)"""
+
 
 axillary_image_prompt = """Describe this ultrasound image accurately and professionally, focusing on the key anatomical structures of the axillary brachial plexus region.
 
