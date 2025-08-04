@@ -8,7 +8,10 @@ AS = Anterior Scalene muscle (If not visible in the image, do not describe it.)"
 
 Supraclavicular_image_prompt = "Describe this ultrasound image accurately and professionally, focusing on the key anatomical structures of the Supraclavicular brachial plexus region. SA = Subclavian Artery (If not visible in the image, do not describe it.)"
 infraclavicular_image_prompt = "Describe this ultrasound image accurately and professionally, focusing on the key anatomical structures of the infraclavicular brachial plexus region."
-axillary_image_prompt = "Describe this ultrasound image accurately and professionally, focusing on the key anatomical structures of the axillary brachial plexus region."
+axillary_image_prompt = """Describe this ultrasound image accurately and professionally, focusing on the key anatomical structures of the axillary brachial plexus region.
+
+AA = Axillary Artery(If not visible in the image, do not describe it.)
+AV = Axillary Vein(If not visible in the image, do not describe it.)"""
 
 
 default_clinic_prompt = """You are a clinical expert in ultrasound-guided regional anesthesia.  
