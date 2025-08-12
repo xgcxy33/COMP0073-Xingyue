@@ -7,7 +7,7 @@
     "clinic_model_top_p": 0.9,
     "clinic_model_temperature": 0.9,
     "clinic_model_prompt_key": "default_clinic_prompt",
-    "clinic_model_id": "aaditya/Llama3-OpenBioLLM-70B",
+    "clinic_model_id": "aaditya/Llama3-OpenBioLLM-8B",
     "clinic_model_tgi_port": 8090,
     "output_file_path": null,
     "outputs": [
