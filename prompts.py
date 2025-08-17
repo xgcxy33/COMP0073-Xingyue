@@ -6,7 +6,7 @@ SCM = Sternocleidomastoid muscle(If not visible in the image, do not describe it
 MS = Middle Scalene muscle(If not visible in the image, do not describe it.)
 AS = Anterior Scalene muscle (If not visible in the image, do not describe it.)"""
 
-Supraclavicular_image_prompt = """Describe this ultrasound image accurately and professionally, focusing on the key anatomical structures of the supraclavicular brachial plexus region.
+supraclavicular_image_prompt = """Describe this ultrasound image accurately and professionally, focusing on the key anatomical structures of the supraclavicular brachial plexus region.
 
 SA = Subclavian Artery (If not visible in the image, do not describe it.)"""
 
