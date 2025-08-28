@@ -9,12 +9,12 @@ from transformers import AutoTokenizer, AutoModel
 from sentence_transformers import SentenceTransformer
 from rouge_score import rouge_scorer
 
-# ==================== 方法 1: BERTScore ====================
+# ==================== Metric 1: BERTScore ====================
 def compute_bertscore(text_a, text_b):
     P, R, F1 = bert_score([text_a], [text_b], lang="en")
     return P.mean().item(), R.mean().item(), F1.mean().item()
 
-# ==================== 方法 2: Bio_ClinicalBERT + Cosine ====================
+# ==================== Metric 2: Bio_ClinicalBERT + Cosine ====================
 class BioTextSimilarity:
     def __init__(self, model_name="emilyalsentzer/Bio_ClinicalBERT"):
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -42,17 +42,17 @@ class BioTextSimilarity:
         similarity = cosine_similarity([embeddings[0]], [embeddings[1]])[0][0]
         return similarity
 
-# ==================== 方法 3: Sentence-BERT + Cosine ====================
+# ==================== Metric 3: Sentence-BERT + Cosine ====================
 def compute_sentencebert_similarity(text_a, text_b):
     print("=== Sentence-BERT Cosine Similarity ===")
-    device = 'cpu'  # 强制使用 CPU
+    device = 'cpu'  
     model = SentenceTransformer('all-MiniLM-L6-v2', device=device)
     embedding_a = model.encode([text_a], convert_to_tensor=True, device=device)
     embedding_b = model.encode([text_b], convert_to_tensor=True, device=device)
     similarity = cosine_similarity(embedding_a.cpu().numpy(), embedding_b.cpu().numpy())
     return similarity[0][0]
 
-# ==================== 方法 4: ROUGE-1 ====================
+# ==================== Metric 4: ROUGE-1 ====================
 def compute_rouge(reference, generated):
     print("=== ROUGE-1 Score ===")
     scorer = rouge_scorer.RougeScorer(['rouge1'], use_stemmer=True)
@@ -60,7 +60,6 @@ def compute_rouge(reference, generated):
     rouge = scores["rouge1"]
     return rouge.precision, rouge.recall, rouge.fmeasure
 
-# ==================== 主程序入口 ====================
 
 def main(args):
     with open(args.input_file_path, 'r') as f:
@@ -115,7 +114,6 @@ def main(args):
             })
 
 
-# ==================== 执行入口 ====================
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("input_file_path", help="Path to the input JSON file")
