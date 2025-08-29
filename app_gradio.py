@@ -20,13 +20,13 @@ import time
 janus_vl_chat_processor, janus_vl_gpt, janus_tokenizer = init_deepseek_janus()
 ULTRASOUND_GUIDE_MODEL_ID = "aaditya/Llama3-OpenBioLLM-70B"
 
-
+#Image understanding ouput function
 @torch.inference_mode()
 def multimodal_understanding(image, question, seed, top_p, temperature):
     return generate_multimodal_understanding(image, question, seed, top_p, temperature, 
                                              janus_vl_chat_processor, janus_vl_gpt, janus_tokenizer)
 
-
+#Final output function: fill the prompt template with the image understanding output and streams tokens from the TGI model.
 def get_final_output(image_understanding, prompt_template, temperature, top_p, max_new_tokens):
     final_output = ''
     prompt = prompt_template.replace("<input>", image_understanding)
@@ -95,7 +95,8 @@ with gr.Blocks() as demo:
         ],
         inputs=[image_input, block_area_dropdown],
     )
-    
+
+#On click: run multimodal_understanding, then stream the final result via get_final_output.    
     understanding_button.click(
         multimodal_understanding,
         inputs=[image_input, question_input, und_seed_input, top_p, temperature],
