@@ -20,7 +20,7 @@ Before you begin, make sure you have:
 ### 1. Clone the repository
 ```bash
 git clone git@github.com:xgcxy33/COMP0073.git
-cd COMP0073-Xingyue
+cd COMP0073
 ```
 
 ### 2. Install Git (if not already installed)
