@@ -1,4 +1,4 @@
-# All code logic was fully understood, and Generative AI was only used in an assistive role. All methods, analysis, and logical reasoning were developed independently by the author. This usage falls under Category 2 of UCL’s Generative AI policy: assistive use only.
+# All code logic was fully understood, and AI was only used in an assistive role. All methods, analysis, and logical reasoning were developed independently by the author. This usage falls under Category 2 of UCL’s Generative AI policy: assistive use only.
 # tests/test_pipeline_min.py
 import os
 import time
